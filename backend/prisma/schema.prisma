@@ -1,0 +1,268 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 String              @id @default(uuid())
+  firebaseUid        String?             @unique
+  name               String
+  email              String?             @unique
+  currency           String              @default("ETB")
+  budgetSetupCompleted Boolean @default(false)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  allocationPlans    AllocationPlan[]
+  buckets            Bucket[]
+  categories         Category[]
+  expenses           Expense[]
+  financialPeriods   FinancialPeriod[]
+  goals              Goal[]
+  incomeTransactions IncomeTransaction[]
+  moneySources       MoneySource[]
+  transfers          Transfer[]
+}
+
+model MoneySource {
+  id                 String                @id @default(uuid())
+  userId             String
+  name               String
+  type               MoneySourceType
+  defaultAmount      Decimal?              @db.Decimal(14, 2)
+  frequency          MoneySourceFrequency?
+  nextExpectedDate   DateTime?
+  isActive           Boolean               @default(true)
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  financialPeriods   FinancialPeriod[]
+  incomeTransactions IncomeTransaction[]
+  user               User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Bucket {
+  id              String           @id @default(uuid())
+  userId          String
+  name            String
+  type            BucketType
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  allocations     Allocation[]
+  allocationRules AllocationRule[]
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expensesFrom    Expense[]        @relation("BucketExpenses")
+  goals           Goal[]
+  transfersFrom   Transfer[]       @relation("TransferFromBucket")
+  transfersTo     Transfer[]       @relation("TransferToBucket")
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model AllocationPlan {
+  id                 String              @id @default(uuid())
+  userId             String
+  name               String
+  createdAt          DateTime            @default(now())
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rules              AllocationRule[]
+  incomeTransactions IncomeTransaction[]
+
+  @@index([userId])
+}
+
+model AllocationRule {
+  id               String         @id @default(uuid())
+  allocationPlanId String
+  bucketId         String
+  percentage       Decimal        @db.Decimal(5, 2)
+  allocationPlan   AllocationPlan @relation(fields: [allocationPlanId], references: [id], onDelete: Cascade)
+  bucket           Bucket         @relation(fields: [bucketId], references: [id], onDelete: Cascade)
+
+  @@unique([allocationPlanId, bucketId])
+}
+
+model FinancialPeriod {
+  id                 String              @id @default(dbgenerated("gen_random_uuid()"))
+  userId             String
+  moneySourceId      String
+  startDate          DateTime            @db.Date
+  endDate            DateTime            @db.Date
+  status             PeriodStatus        @default(UPCOMING)
+  expenses           Expense[]
+  moneySource        MoneySource         @relation(fields: [moneySourceId], references: [id], onDelete: Cascade)
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  incomeTransactions IncomeTransaction[]
+
+  @@unique([userId, startDate, endDate])
+  @@index([userId])
+  @@index([moneySourceId])
+}
+
+model IncomeTransaction {
+  id               String           @id @default(uuid())
+  userId           String
+  moneySourceId    String
+  periodId         String?
+  allocationPlanId String?
+  amount           Decimal          @db.Decimal(14, 2)
+  type             IncomeType
+  receivedAt       DateTime
+  note             String?
+  createdAt        DateTime         @default(now())
+  allocations      Allocation[]
+  allocationPlan   AllocationPlan?  @relation(fields: [allocationPlanId], references: [id])
+  moneySource      MoneySource      @relation(fields: [moneySourceId], references: [id], onDelete: Cascade)
+  period           FinancialPeriod? @relation(fields: [periodId], references: [id])
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([moneySourceId])
+  @@index([periodId])
+}
+
+model Allocation {
+  id                  String            @id @default(uuid())
+  incomeTransactionId String
+  bucketId            String
+  percentage          Decimal?          @db.Decimal(5, 2)
+  amount              Decimal           @db.Decimal(14, 2)
+  createdAt           DateTime          @default(now())
+  bucket              Bucket            @relation(fields: [bucketId], references: [id], onDelete: Cascade)
+  incomeTransaction   IncomeTransaction @relation(fields: [incomeTransactionId], references: [id], onDelete: Cascade)
+
+  @@index([incomeTransactionId])
+  @@index([bucketId])
+}
+
+
+model Category {
+  id        String    @id @default(uuid())
+  userId    String
+  name      String
+  isDefault Boolean   @default(false)
+  isActive  Boolean   @default(true)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expenses  Expense[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([isActive, deletedAt])
+}
+
+
+model Expense {
+  id         String           @id @default(uuid())
+  userId     String
+  bucketId   String
+  categoryId String
+  periodId   String?
+  amount     Decimal          @db.Decimal(14, 2)
+  type       ExpenseType
+  spentAt    DateTime
+  note       String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  bucket     Bucket           @relation("BucketExpenses", fields: [bucketId], references: [id])
+  category   Category         @relation(fields: [categoryId], references: [id])
+  period     FinancialPeriod? @relation(fields: [periodId], references: [id])
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([bucketId])
+  @@index([categoryId])
+  @@index([periodId])
+  @@index([spentAt])
+}
+
+model Transfer {
+  id            String   @id @default(uuid())
+  userId        String
+  fromBucketId  String
+  toBucketId    String
+  amount        Decimal  @db.Decimal(14, 2)
+  transferredAt DateTime
+  note          String?
+  createdAt     DateTime @default(now())
+  fromBucket    Bucket   @relation("TransferFromBucket", fields: [fromBucketId], references: [id])
+  toBucket      Bucket   @relation("TransferToBucket", fields: [toBucketId], references: [id])
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([fromBucketId])
+  @@index([toBucketId])
+  @@index([transferredAt])
+}
+
+model Goal {
+  id           String    @id @default(uuid())
+  userId       String
+  bucketId     String
+  name         String
+  targetAmount Decimal   @db.Decimal(14, 2)
+  targetDate   DateTime? @db.Date
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  bucket       Bucket    @relation(fields: [bucketId], references: [id])
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([bucketId])
+}
+
+enum MoneySourceType {
+  REGULAR
+  OCCASIONAL
+}
+
+enum MoneySourceFrequency {
+  WEEKLY
+  BIWEEKLY
+  TWICE_MONTHLY
+  MONTHLY
+  CUSTOM
+}
+
+enum BucketType {
+  ESSENTIAL
+  EMERGENCY
+  INVESTMENT
+  FLEXIBLE
+  BUFFER
+  UNALLOCATED
+  CUSTOM
+}
+
+enum IncomeType {
+  REGULAR
+  OCCASIONAL
+}
+
+enum PeriodStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED
+}
+
+enum ExpenseType {
+  NEED
+  WANT
+}
+
+enum PeriodFrequency {
+  WEEKLY
+  BIWEEKLY
+  TWICE_MONTHLY
+  MONTHLY
+  CUSTOM
+}

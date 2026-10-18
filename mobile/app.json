@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Birre",
+    "slug": "mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/Birre_logo.png",
+    "scheme": "birre",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "icon": "./assets/Birre_logo.png"
+    },
+    "android": {
+      "package": "com.birre.mobile",
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/Birre_logo.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#208AEF",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 76
+        }
+      ],
+      "@react-native-google-signin/google-signin"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "fa305b4d-f9cb-4242-8c1b-29230944e88a"
+      }
+    }
+  }
+}
