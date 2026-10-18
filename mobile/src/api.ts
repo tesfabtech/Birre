@@ -6,7 +6,7 @@ import {
 
 import { auth } from './firebase';
 
-const API_BASE_URL = 'http://192.168.8.214:3000';
+const API_BASE_URL = 'https://birre-backend.onrender.com';
 
 export type ApiErrorResponse = {
   code?: string;
