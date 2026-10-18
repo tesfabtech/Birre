@@ -42,3 +42,8 @@ mobile/.git/
 # Local Git backup and tool settings
 mobile/.git-old/
 mobile/.claude/
+
+# Local backend credentials
+backend.env
+backend/*.env
+*firebase-adminsdk*.json
