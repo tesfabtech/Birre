@@ -11,9 +11,13 @@
       "icon": "./assets/Birre_logo.png"
     },
     "android": {
-      "package": "com.birre.mobile",
-      "predictiveBackGestureEnabled": false
-    },
+  "package": "com.birre.mobile",
+  "predictiveBackGestureEnabled": false,
+  "adaptiveIcon": {
+    "foregroundImage": "./assets/Birre_logo.png",
+    "backgroundColor": "#208AEF"
+  }
+},
     "web": {
       "output": "static",
       "favicon": "./assets/Birre_logo.png"

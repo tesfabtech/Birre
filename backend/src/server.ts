@@ -58,8 +58,8 @@ startCategoryCleanupJob();
 
 
 
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
-app.listen(PORT, () => {
-  console.log(`Birre API running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Birre API running on port ${PORT}`);
 });
