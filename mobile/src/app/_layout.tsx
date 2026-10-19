@@ -1,5 +1,5 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -17,7 +17,7 @@ import { Colors } from '@/constants/colors';
 const birreLogo = require('../../assets/logo.png');
 
 function BirreLoadingScreen() {
-  const spinValue = new Animated.Value(0);
+  const spinValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const spinAnimation = Animated.loop(

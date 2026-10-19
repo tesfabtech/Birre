@@ -24,14 +24,14 @@
     },
     "plugins": [
       "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
-        }
-      ],
+     [
+  "expo-splash-screen",
+  {
+    "backgroundColor": "#FFFFFF",
+    "image": "./assets/logo.png",
+    "imageWidth": 150
+  }
+],
       "@react-native-google-signin/google-signin"
     ],
     "experiments": {
